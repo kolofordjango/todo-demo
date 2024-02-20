@@ -1,0 +1,24 @@
+venv
+.venv/
+.direnv/
+*.pyc
+staticfiles
+.env
+*.sqlite3
+*.rdb
+
+*.DS_STORE
+
+# PyCharm files
+.idea
+
+.coverage*
+
+
+.mypy_cache/
+
+
+__pycache__/
+
+
+.env

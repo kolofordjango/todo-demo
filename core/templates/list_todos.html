@@ -1,0 +1,30 @@
+
+<h1>Todos</h1>
+{% for todo in todos %}
+<ul>
+    <li style="float: left; margin-right: 1em">
+        {% if todo.is_completed %}✅ {%endif%}{{ todo.title }}
+    </li>
+    <form style="display: inline" method="POST" action="/break/">
+        {% csrf_token %}
+        <input type="hidden" name="title" value="{{ todo.title }}">
+        <button type="submit">Break down</button>
+    </form>
+    <form style="display: inline" method="POST" action="{% url 'complete_todo' todo.id %}">
+    {% csrf_token %}
+        {% if todo.is_completed %}
+            <button type="submit">Uncomplete</button>
+        {% else %}
+            <button type="submit">Complete</button>
+        {% endif %}
+        
+    </form>
+</ul>
+{% endfor %}
+
+<form method="POST" action="/add/">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Add</button>
+</form>
+
