@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404, render
 from core.models import Todo
 
 
-def user_not_evil(function):
+def authenticate(function):
     @wraps(function)
     def wrap(request, *args, **kwargs):
         if "evil" in request.headers:
@@ -25,17 +25,15 @@ class TodoForm(forms.ModelForm):
         model = Todo
         fields = ['title']
 
-@user_not_evil
+@authenticate
 def list_todos(request):
     todos = Todo.objects.all().order_by("id")
-    for todo in todos:
-        print(todo.id, todo.is_completed)
 
     form = TodoForm()
 
     return render(request, 'list_todos.html', {'todos': todos, 'form': form})
 
-@user_not_evil
+@authenticate
 def add_todo(request):
     form = TodoForm(request.POST)
     if form.is_valid():
@@ -64,7 +62,7 @@ def break_down_from_gpt(title):
     output = completion["choices"][0]["message"]["content"]
     return output
 
-@user_not_evil
+@authenticate
 def breakdown_todo(request):
     title = request.POST['title']
 
@@ -84,7 +82,7 @@ def breakdown_todo(request):
     return HttpResponseRedirect('/')
 
 
-@user_not_evil
+@authenticate
 def complete_todo(request, todo_id):
     todo = get_object_or_404(Todo, id=todo_id)
     if todo.is_completed:
