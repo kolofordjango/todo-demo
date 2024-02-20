@@ -45,18 +45,17 @@ def break_down_from_gpt(title):
     PROMPT = f"""
     Break down the following todo item into 3 concrete, actionable steps, which
     make it easier to complete the overall todo. 
-    Respond with a JSON list of 3 strings, each representing the new todo and nothing else!
-
-    Todo item:
+    Respond with a JSON object with top level key "todos" which is a list of 3 strings, each representing the new todo and nothing else!
+    Be extremely concise with each todo, it should be no more than 5 words each.
     """
 
-    prompt_with_todo = PROMPT + title
-
     completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4-turbo-preview",
         messages=[
-            {"role": "user", "content": prompt_with_todo}
-        ]
+            {"role": "system", "content": PROMPT},
+            {"role": "user", "content": "Todo: " + title},
+        ],
+        response_format={"type": "json_object"},
     )
 
     output = completion["choices"][0]["message"]["content"]
@@ -74,7 +73,7 @@ def breakdown_todo(request):
 
     output = break_down_from_gpt(title)
 
-    todos_to_add = json.loads(output)
+    todos_to_add = json.loads(output)["todos"]
 
     for todo in todos_to_add:
         Todo.objects.create(title=todo)
