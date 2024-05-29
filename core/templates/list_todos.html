@@ -1,4 +1,7 @@
 
+{% extends "base.html" %}
+
+{% block body %}
 <h1>Todos</h1>
 {% for todo in todos %}
 <ul>
@@ -17,14 +20,32 @@
         {% else %}
             <button type="submit">Complete</button>
         {% endif %}
-        
+    </form>
+    <form style="display: inline" method="POST" action="{% url 'delete_todo' todo.id %}">
+        {% csrf_token %}
+        <button type="submit">Delete</button>
     </form>
 </ul>
 {% endfor %}
 
-<form method="POST" action="/add/">
+<hr>
+<form style="display: inline" method="POST" action="/add/">
     {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Add</button>
+    <div style="display: flex;">
+    {% for field in form %}
+        <div style="display: flex; flex-direction: column;">
+            <label style="font-weight: bold" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+        </div>
+    {% endfor %}
+    <button style="place-self: end; margin-left: 0.5rem;" type="submit">Add</button>
+    </div>
 </form>
+
+<form style="margin-top: 2rem" method="POST" action="{% url 'clear_todos' %}">
+    {% csrf_token %}
+    <button type="submit">Clear all todos</button>
+    </div>
+</form>
+{% endblock %}
 

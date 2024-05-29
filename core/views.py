@@ -27,10 +27,12 @@ class TodoForm(forms.ModelForm):
 
 @authenticate
 def list_todos(request):
+
+    import requests
+    google = requests.head("https://google.com")
+
     todos = Todo.objects.all().order_by("id")
-
     form = TodoForm()
-
     return render(request, 'list_todos.html', {'todos': todos, 'form': form})
 
 @authenticate
@@ -38,7 +40,8 @@ def add_todo(request):
     form = TodoForm(request.POST)
     if form.is_valid():
         form.save()
-        return HttpResponseRedirect('/')
+        todos = Todo.objects.all().order_by("id")
+        return render(request, "list_todos.html", {"todos": todos, "form": form})
 
 
 def break_down_from_gpt(title):
@@ -63,6 +66,7 @@ def break_down_from_gpt(title):
 
 @authenticate
 def breakdown_todo(request):
+    # TODO: Convert this to id
     title = request.POST['title']
 
     existing_todo = Todo.objects.get(title=title)
@@ -78,15 +82,41 @@ def breakdown_todo(request):
     for todo in todos_to_add:
         Todo.objects.create(title=todo)
 
-    return HttpResponseRedirect('/')
+    todos = Todo.objects.all().order_by("id")
+    form = TodoForm()
+    return render(request, "list_todos.html", {"todos": todos, "form": form})
 
 
 @authenticate
 def complete_todo(request, todo_id):
     todo = get_object_or_404(Todo, id=todo_id)
+
     if todo.is_completed:
         todo.is_completed = False
     else:
         todo.is_completed = True
     todo.save()
-    return HttpResponseRedirect("/")
+
+    todos = Todo.objects.all().order_by("id")
+    form = TodoForm()
+    return render(request, "list_todos.html", {"todos": todos, "form": form})
+
+
+@authenticate
+def delete_todo(request, todo_id):
+    todo = get_object_or_404(Todo, id=todo_id)
+
+    todo.delete()
+
+    todos = Todo.objects.all().order_by("id")
+    form = TodoForm()
+    return render(request, "list_todos.html", {"todos": todos, "form": form})
+
+
+@authenticate
+def clear_todos(request):
+    Todo.objects.all().delete()
+
+    todos = Todo.objects.all().order_by("id")
+    form = TodoForm()
+    return render(request, "list_todos.html", {"todos": todos, "form": form})

@@ -1,0 +1,3 @@
+[filters]
+
+ignore_request_paths = ["/static/", "/favicon.ico", "requestProvider.js.map", "/apple-touch-icon.png", "/apple-touch-icon-percomposed.png"]
