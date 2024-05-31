@@ -8,11 +8,11 @@
     <li style="float: left; margin-right: 1em">
         {% if todo.is_completed %}✅ {%endif%}{{ todo.title }}
     </li>
-    <form style="display: inline" method="POST" action="/break/">
+    {% comment %} <form style="display: inline" method="POST" action="/break/">
         {% csrf_token %}
         <input type="hidden" name="title" value="{{ todo.title }}">
         <button type="submit">Break down</button>
-    </form>
+    </form> {% endcomment %}
     <form style="display: inline" method="POST" action="{% url 'complete_todo' todo.id %}">
     {% csrf_token %}
         {% if todo.is_completed %}
@@ -21,24 +21,27 @@
             <button type="submit">Complete</button>
         {% endif %}
     </form>
-    <form style="display: inline" method="POST" action="{% url 'delete_todo' todo.id %}">
+    {% comment %} <form style="display: inline" method="POST" action="{% url 'delete_todo' todo.id %}">
         {% csrf_token %}
         <button type="submit">Delete</button>
-    </form>
+    </form> {% endcomment %}
 </ul>
 {% endfor %}
+{% if fortune_cookie %}
+    <p style="margin-top: 2rem">🔮 {{ fortune_cookie }}</p>
+{% endif %}
 
 <hr>
 <form style="display: inline" method="POST" action="/add/">
     {% csrf_token %}
-    <div style="display: flex;">
+    <div style="display: flex; gap: 10px;">
     {% for field in form %}
         <div style="display: flex; flex-direction: column;">
             <label style="font-weight: bold" for="{{ field.id_for_label }}">{{ field.label }}</label>
             {{ field }}
         </div>
     {% endfor %}
-    <button style="place-self: end; margin-left: 0.5rem;" type="submit">Add</button>
+    <button style="place-self: end" type="submit">Add</button>
     </div>
 </form>
 

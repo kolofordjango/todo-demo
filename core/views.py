@@ -4,10 +4,14 @@ from functools import wraps
 import openai
 
 from django import forms
-from django.http import HttpResponseRedirect, HttpResponseForbidden
+from django.http import (
+    HttpResponseBadRequest,
+    HttpResponseRedirect,
+    HttpResponseForbidden,
+)
 from django.shortcuts import get_object_or_404, render
 
-from core.models import Todo
+from core.models import Event, Todo, User
 
 
 def authenticate(function):
@@ -17,31 +21,73 @@ def authenticate(function):
             return HttpResponseForbidden()
         else:
             return function(request, *args, **kwargs)
+
     return wrap
 
 
 class TodoForm(forms.ModelForm):
+    creator = forms.ModelChoiceField(
+        queryset=User.objects.all(), initial=User.objects.first()
+    )
+
     class Meta:
         model = Todo
-        fields = ['title']
+        fields = ["title", "creator"]
+
 
 @authenticate
 def list_todos(request):
 
-    import requests
-    google = requests.head("https://google.com")
-
     todos = Todo.objects.all().order_by("id")
     form = TodoForm()
-    return render(request, 'list_todos.html', {'todos': todos, 'form': form})
+    return render(request, "list_todos.html", {"todos": todos, "form": form})
+
 
 @authenticate
 def add_todo(request):
     form = TodoForm(request.POST)
-    if form.is_valid():
-        form.save()
-        todos = Todo.objects.all().order_by("id")
-        return render(request, "list_todos.html", {"todos": todos, "form": form})
+
+    if not form.is_valid():
+        return HttpResponseBadRequest("Invalid form")
+
+    todo = form.save()
+
+    user = todo.creator
+
+    Event.objects.create(
+        name="todo_added", data={"todo_id": todo.id, "fortune_cookie": True}, user=user
+    )
+
+    user.lifetime_todos_created = user.lifetime_todos_created + 1
+    user.save(update_fields=["lifetime_todos_created"])
+
+    todos = Todo.objects.all().order_by("id")
+
+    fortune_cookie_message = fortune_cookie(todo.title)
+    return render(
+        request,
+        "list_todos.html",
+        {"todos": todos, "form": form, "fortune_cookie": fortune_cookie_message},
+    )
+
+
+def fortune_cookie(todo_title: str) -> str:
+    PROMPT = f"""
+    Please create a very brief fortune cookie style message which
+    relates to the user provided todo.
+    """
+
+    completion = openai.ChatCompletion.create(
+        model="gpt-4-turbo-preview",
+        messages=[
+            {"role": "system", "content": PROMPT},
+            {"role": "user", "content": "Todo: " + todo_title},
+        ],
+    )
+
+    fortune_cookie_message = completion["choices"][0]["message"]["content"]
+
+    return fortune_cookie_message
 
 
 def break_down_from_gpt(title):
@@ -53,7 +99,7 @@ def break_down_from_gpt(title):
     """
 
     completion = openai.ChatCompletion.create(
-        model="gpt-4-turbo-preview",
+        model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": PROMPT},
             {"role": "user", "content": "Todo: " + title},
@@ -64,10 +110,11 @@ def break_down_from_gpt(title):
     output = completion["choices"][0]["message"]["content"]
     return output
 
+
 @authenticate
 def breakdown_todo(request):
     # TODO: Convert this to id
-    title = request.POST['title']
+    title = request.POST["title"]
 
     existing_todo = Todo.objects.get(title=title)
     existing_todo.title = title + " (broken down 👇)"
