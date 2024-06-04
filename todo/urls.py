@@ -14,6 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import path
 from core.views import (
@@ -23,6 +24,7 @@ from core.views import (
     complete_todo,
     delete_todo,
     clear_todos,
+    list_todos_json,
 )
 
 urlpatterns = [
@@ -32,4 +34,5 @@ urlpatterns = [
     path("complete/<int:todo_id>/", complete_todo, name="complete_todo"),
     path("delete/<int:todo_id>/", delete_todo, name="delete_todo"),
     path("clear/", clear_todos, name="clear_todos"),
+    path("todos.json", list_todos_json, name="list_todos_json"),
 ]

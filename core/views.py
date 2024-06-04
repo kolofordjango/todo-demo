@@ -8,6 +8,7 @@ from django.http import (
     HttpResponseBadRequest,
     HttpResponseRedirect,
     HttpResponseForbidden,
+    JsonResponse,
 )
 from django.shortcuts import get_object_or_404, render
 
@@ -41,6 +42,12 @@ def list_todos(request):
     todos = Todo.objects.all().order_by("id")
     form = TodoForm()
     return render(request, "list_todos.html", {"todos": todos, "form": form})
+
+
+@authenticate
+def list_todos_json(request):
+    todos = list(Todo.objects.all().order_by("id").values())
+    return JsonResponse({"todos": todos})
 
 
 @authenticate
@@ -93,7 +100,7 @@ def fortune_cookie(todo_title: str) -> str:
 def break_down_from_gpt(title):
     PROMPT = f"""
     Break down the following todo item into 3 concrete, actionable steps, which
-    make it easier to complete the overall todo. 
+    make it easier to complete the overall todo.
     Respond with a JSON object with top level key "todos" which is a list of 3 strings, each representing the new todo and nothing else!
     Be extremely concise with each todo, it should be no more than 5 words each.
     """
