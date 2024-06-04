@@ -46,7 +46,7 @@ def list_todos(request):
 
 @authenticate
 def list_todos_json(request):
-    todos = list(Todo.objects.all().order_by("id").values())
+    todos = list(Todo.objects.order_by("id").values())
     return JsonResponse({"todos": todos})
 
 
