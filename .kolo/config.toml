@@ -1,3 +1,13 @@
 [filters]
 
-ignore_request_paths = ["/static/", "/favicon.ico", "requestProvider.js.map", "/apple-touch-icon.png", "/apple-touch-icon-percomposed.png"]
+ignore_request_paths = [
+    "/static/",
+    "/favicon.ico",
+    "requestProvider.js.map",
+    "/apple-touch-icon.png",
+    "/apple-touch-icon-percomposed.png",
+]
+
+[test_generation]
+
+output_dir = "core"
